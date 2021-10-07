@@ -69,11 +69,7 @@ import org.jetbrains.projector.util.loading.UseProjectorLoader
 import org.jetbrains.projector.util.logging.Logger
 import org.jetbrains.projector.util.logging.loggerFactory
 import sun.awt.AWTAccessor
-import java.awt.Frame
-import java.awt.GraphicsEnvironment
-import java.awt.Rectangle
-import java.awt.Toolkit
-import java.awt.Window
+import java.awt.*
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
@@ -278,17 +274,7 @@ class ProjectorServer private constructor(
 
     calculateMainWindowShift()
 
-    val drawCommands = extractData(ProjectorDrawEventQueue.commands)
-      .groupBy { (target, _) -> target }
-      .mapValues { (_, commands) ->
-        commands.map { (_, subcommands) -> subcommands }
-      }
-      .map { (target, commands) ->
-        ServerDrawCommandsEvent(
-          target = target,
-          drawEvents = commands.convertToSimpleList(),
-        )
-      }
+    val drawCommands = extractData(ProjectorDrawEventQueue.commands).shrinkEvents()
 
     val windows = PWindow.windows
       .mapIndexed { i, window ->
