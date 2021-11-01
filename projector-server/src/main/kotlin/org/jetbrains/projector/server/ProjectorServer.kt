@@ -216,7 +216,7 @@ class ProjectorServer private constructor(
 
     override fun updateClientsCount() {
       val count = transports.sumOf { it.clientCount }
-      notifyObservers(PropertyChangeEvent(this, "clientsCount", null, count))
+      notifyObservers(clientsCountMessage(this, count))
     }
   }
 
@@ -227,7 +227,7 @@ class ProjectorServer private constructor(
   private fun notifyObservers(event: PropertyChangeEvent) = observers.forEach { it.propertyChange(event) }
 
   private fun sendMacLocalConnectionWarning(address: InetAddress) {
-    notifyObservers(PropertyChangeEvent(this, "macLocalConnection", null, address))
+    notifyObservers(macLocalConnectionMessage(this, address))
   }
 
   private fun createUpdateThread(): Thread = thread(isDaemon = true) {
@@ -615,7 +615,7 @@ class ProjectorServer private constructor(
     if (isAgent) {
       val remoteIp = conn.confirmationRemoteIp
 
-      if ( isMac && remoteIp != null && isLocalAddress(remoteIp)) {
+      if (isMac && remoteIp != null && isLocalAddress(remoteIp)) {
         sendMacLocalConnectionWarning(remoteIp)
       }
     }
