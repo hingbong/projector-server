@@ -116,6 +116,8 @@ class ProjectorServer private constructor(
 
   private val markdownQueue = ConcurrentLinkedQueue<ServerMarkdownEvent>()
 
+  private val baseQueue = ConcurrentLinkedQueue<ServerEvent>()
+
   private var windowColorsEvent: ServerWindowColorsEvent? = null
 
   private val ideaColors = IdeColors { colors ->
@@ -156,7 +158,7 @@ class ProjectorServer private constructor(
       markdownQueue.add(ServerMarkdownEvent.ServerMarkdownScrollEvent(id, offset))
     }
     PDesktopPeer.browseUriCallback = { link ->
-      markdownQueue.add(ServerMarkdownEvent.ServerMarkdownBrowseUriEvent(link))
+      baseQueue.add(ServerBrowseUriEvent(link))
     }
   }
 
@@ -318,8 +320,10 @@ class ProjectorServer private constructor(
 
     val markdownEvents = extractData(markdownQueue)
 
-    val commandsCount = caretInfoEvents.size +
-                        newImagesCopy.size + clipboardEvent.size + drawCommands.size + windowSetChangedEvent.size + markdownEvents.size + 1
+    val baseEvents = extractData(baseQueue)
+
+    val commandsCount = caretInfoEvents.size + newImagesCopy.size + clipboardEvent.size + drawCommands.size + windowSetChangedEvent.size +
+                        markdownEvents.size + baseEvents.size + 1
 
     val allEvents = buildList(commandsCount) {
       addAll(caretInfoEvents)
@@ -328,6 +332,7 @@ class ProjectorServer private constructor(
       addAll(drawCommands)
       addAll(windowSetChangedEvent)
       addAll(markdownEvents)
+      addAll(baseEvents)
       windowColorsEvent?.let { add(it); windowColorsEvent = null }
     }
 
